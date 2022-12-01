@@ -25,8 +25,7 @@ public class UtenteServiceImpl implements UtenteService {
 
 	@Override
 	public List<Utente> listAllUtenti() {
-		// TODO Auto-generated method stub
-		return null;
+		return (List<Utente>) repository.findAll();
 	}
 
 	@Override
@@ -36,15 +35,20 @@ public class UtenteServiceImpl implements UtenteService {
 
 	@Override
 	public Utente caricaSingoloUtenteConRuoli(Long id) {
-		// TODO Auto-generated method stub
-		return null;
+		return repository.findByIdConRuoli(id).orElse(null);
 	}
 
 	@Override
 	@Transactional
 	public Utente aggiorna(Utente utenteInstance) {
-		// TODO Auto-generated method stub
-		return null;
+		Utente utenteReloaded = repository.findById(utenteInstance.getId()).orElse(null);
+		if (utenteReloaded == null)
+			throw new NotFoundException("Elemento non trovato");
+		utenteReloaded.setNome(utenteInstance.getNome());
+		utenteReloaded.setCognome(utenteInstance.getCognome());
+		utenteReloaded.setRuoli(utenteInstance.getRuoli());
+		utenteReloaded.setUsername(utenteInstance.getUsername());
+		return repository.save(utenteReloaded);
 	}
 
 	@Override
@@ -65,8 +69,7 @@ public class UtenteServiceImpl implements UtenteService {
 
 	@Override
 	public List<Utente> findByExample(Utente example) {
-		// TODO Auto-generated method stub
-		return null;
+		return repository.findByExample(example);
 	}
 
 	@Override
