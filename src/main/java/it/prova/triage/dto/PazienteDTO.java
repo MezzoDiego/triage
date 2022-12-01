@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.validation.constraints.NotBlank;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import it.prova.triage.model.Paziente;
@@ -13,11 +15,15 @@ import it.prova.triage.model.StatoPaziente;
 public class PazienteDTO {
 
 	private Long id;
+	@NotBlank(message = "{nome.notblank}")
 	private String nome;
+	@NotBlank(message = "{cognome.notblank}")
 	private String cognome;
+	@NotBlank(message = "{codicefiscale.notblank}")
 	private String codiceFiscale;
 	private LocalDate dataRegistrazione;
 	private StatoPaziente stato;
+	
 	private String codiceDottore;
 
 	public PazienteDTO() {
