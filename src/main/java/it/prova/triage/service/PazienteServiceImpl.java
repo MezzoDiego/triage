@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import it.prova.triage.model.Paziente;
 import it.prova.triage.model.StatoPaziente;
 import it.prova.triage.repository.paziente.PazienteRepository;
+import it.prova.triage.web.api.exceptions.NotFoundException;
 import it.prova.triage.web.api.exceptions.NotRemovableException;
 import it.prova.triage.web.api.exceptions.NullException;
 
@@ -62,6 +63,20 @@ public class PazienteServiceImpl implements PazienteService {
 	public List<Paziente> findByExample(Paziente example) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	@Transactional
+	public void impostaCodiceDottoreAPaziente(String CF, String codiceDottore) {
+		Paziente pazienteReloaded = repository.findByCodiceFiscale(CF);
+		
+		if(pazienteReloaded == null)
+			throw new NotFoundException("Paziente non trovato con Codice Fiscale: " + CF);
+		
+		pazienteReloaded.setCodiceDottore(codiceDottore);
+		pazienteReloaded.setStato(StatoPaziente.IN_VISITA);
+		repository.save(pazienteReloaded);
+		
 	}
 
 }

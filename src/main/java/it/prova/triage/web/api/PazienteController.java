@@ -4,8 +4,6 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,12 +15,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import it.prova.triage.dto.PazienteDTO;
-import it.prova.triage.dto.UtenteDTO;
 import it.prova.triage.model.Paziente;
-import it.prova.triage.model.Utente;
 import it.prova.triage.service.PazienteService;
 import it.prova.triage.web.api.exceptions.IdNotNullForInsertException;
 import it.prova.triage.web.api.exceptions.NotFoundException;
@@ -31,13 +26,8 @@ import it.prova.triage.web.api.exceptions.NotFoundException;
 @RequestMapping("api/paziente")
 public class PazienteController {
 
-	private static final Logger LOGGER = LogManager.getLogger(PazienteController.class);
-
 	@Autowired
 	private PazienteService pazienteService;
-
-	@Autowired
-	private WebClient webClient;
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
@@ -73,7 +63,7 @@ public class PazienteController {
 
 		pazienteService.rimuovi(id);
 	}
-	
+
 	@PutMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public PazienteDTO update(@Valid @RequestBody PazienteDTO paziente, @PathVariable(required = true) Long id) {
@@ -86,6 +76,5 @@ public class PazienteController {
 		Paziente pazienteAggiornato = pazienteService.aggiorna(paziente.buildPazienteModel());
 		return PazienteDTO.buildPazienteDTOFromModel(pazienteAggiornato);
 	}
-
 
 }

@@ -16,4 +16,6 @@ public interface PazienteService {
 	public void rimuovi(Long idToRemove);
 
 	public List<Paziente> findByExample(Paziente example);
+	
+	public void impostaCodiceDottoreAPaziente(String CF, String CodiceDottore);
 }

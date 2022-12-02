@@ -22,6 +22,8 @@ public class Paziente {
 	private String codiceFiscale;
 	private LocalDate dataRegistrazione;
 
+	private String codiceDottore;
+
 	@Enumerated(EnumType.STRING)
 	private StatoPaziente stato;
 
@@ -86,6 +88,14 @@ public class Paziente {
 
 	public void setStato(StatoPaziente stato) {
 		this.stato = stato;
+	}
+
+	public String getCodiceDottore() {
+		return codiceDottore;
+	}
+
+	public void setCodiceDottore(String codiceDottore) {
+		this.codiceDottore = codiceDottore;
 	}
 
 }
