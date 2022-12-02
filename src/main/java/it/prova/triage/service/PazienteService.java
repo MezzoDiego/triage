@@ -18,4 +18,6 @@ public interface PazienteService {
 	public List<Paziente> findByExample(Paziente example);
 	
 	public void impostaCodiceDottoreAPaziente(String CF, String CodiceDottore);
+	
+	public void ricovera(Long id);
 }

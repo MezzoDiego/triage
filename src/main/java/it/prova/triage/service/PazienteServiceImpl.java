@@ -13,6 +13,7 @@ import it.prova.triage.repository.paziente.PazienteRepository;
 import it.prova.triage.web.api.exceptions.NotFoundException;
 import it.prova.triage.web.api.exceptions.NotRemovableException;
 import it.prova.triage.web.api.exceptions.NullException;
+import it.prova.triage.web.api.exceptions.PazienteNonInVisitaException;
 
 @Service
 @Transactional(readOnly = true)
@@ -23,7 +24,7 @@ public class PazienteServiceImpl implements PazienteService {
 
 	@Override
 	public List<Paziente> listAllPazienti() {
-		return (List<Paziente>)repository.findAll();
+		return (List<Paziente>) repository.findAll();
 	}
 
 	@Override
@@ -49,12 +50,12 @@ public class PazienteServiceImpl implements PazienteService {
 	@Transactional
 	public void rimuovi(Long idToRemove) {
 		Paziente pazienteReloaded = repository.findById(idToRemove).orElse(null);
-		if(pazienteReloaded == null)
+		if (pazienteReloaded == null)
 			throw new NullException("Nessun Paziente trovato tramite l'id dato.");
-		
-		if(!pazienteReloaded.getStato().equals(StatoPaziente.DIMESSO))
+
+		if (!pazienteReloaded.getStato().equals(StatoPaziente.DIMESSO))
 			throw new NotRemovableException("Impossibile eliminare un paziente non dimesso.");
-		
+
 		repository.deleteById(idToRemove);
 
 	}
@@ -69,14 +70,30 @@ public class PazienteServiceImpl implements PazienteService {
 	@Transactional
 	public void impostaCodiceDottoreAPaziente(String CF, String codiceDottore) {
 		Paziente pazienteReloaded = repository.findByCodiceFiscale(CF);
-		
-		if(pazienteReloaded == null)
+
+		if (pazienteReloaded == null)
 			throw new NotFoundException("Paziente non trovato con Codice Fiscale: " + CF);
-		
+
 		pazienteReloaded.setCodiceDottore(codiceDottore);
 		pazienteReloaded.setStato(StatoPaziente.IN_VISITA);
 		repository.save(pazienteReloaded);
-		
+
+	}
+
+	@Override
+	@Transactional
+	public void ricovera(Long id) {
+		Paziente pazienteReloaded = repository.findById(id).orElse(null);
+
+		if (pazienteReloaded == null)
+			throw new NotFoundException("Paziente non trovato con id: " + id);
+
+		if (!pazienteReloaded.getStato().equals(StatoPaziente.IN_VISITA))
+			throw new PazienteNonInVisitaException("Impossibile ricoverare un paziente che non e' in visita!!!!!!");
+
+		pazienteReloaded.setStato(StatoPaziente.RICOVERATO);
+		pazienteReloaded.setCodiceDottore(null);
+		repository.save(pazienteReloaded);
 	}
 
 }

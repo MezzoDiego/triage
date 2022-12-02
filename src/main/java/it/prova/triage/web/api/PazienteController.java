@@ -6,6 +6,7 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,12 +16,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import it.prova.triage.dto.DottoreRequestDTO;
+import it.prova.triage.dto.DottoreResponseDTO;
 import it.prova.triage.dto.PazienteDTO;
 import it.prova.triage.model.Paziente;
 import it.prova.triage.service.PazienteService;
+import it.prova.triage.web.api.exceptions.DottoreNotAvailableException;
 import it.prova.triage.web.api.exceptions.IdNotNullForInsertException;
 import it.prova.triage.web.api.exceptions.NotFoundException;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("api/paziente")
@@ -28,6 +34,9 @@ public class PazienteController {
 
 	@Autowired
 	private PazienteService pazienteService;
+	
+	@Autowired
+	private WebClient webClient;
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
@@ -75,6 +84,23 @@ public class PazienteController {
 		paziente.setId(id);
 		Paziente pazienteAggiornato = pazienteService.aggiorna(paziente.buildPazienteModel());
 		return PazienteDTO.buildPazienteDTOFromModel(pazienteAggiornato);
+	}
+	
+	@PostMapping("/ricovera/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public DottoreResponseDTO impostaVisita( @Valid @RequestBody DottoreRequestDTO dottoreRequest, @PathVariable(required = true) Long id) {
+		
+		
+		pazienteService.ricovera(id);
+		
+		ResponseEntity<DottoreResponseDTO> response = webClient
+				.post().uri("/ricovera").body(
+						Mono.just(new DottoreRequestDTO(dottoreRequest.getCodiceDottore(), dottoreRequest.getCodiceFiscalePazienteAttualmenteInVisita())),
+						DottoreRequestDTO.class)
+				.retrieve().toEntity(DottoreResponseDTO.class).block();
+		
+		return new DottoreResponseDTO(response.getBody().getNome(), response.getBody().getCognome(), response.getBody().getCodiceDottore(), response.getBody().getInServizio(), response.getBody().getInVisita());
+		
 	}
 
 }
