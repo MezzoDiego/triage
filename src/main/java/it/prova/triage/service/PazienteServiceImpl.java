@@ -96,4 +96,21 @@ public class PazienteServiceImpl implements PazienteService {
 		repository.save(pazienteReloaded);
 	}
 
+	@Override
+	@Transactional
+	public void dimetti(Long id) {
+		Paziente pazienteReloaded = repository.findById(id).orElse(null);
+
+		if (pazienteReloaded == null)
+			throw new NotFoundException("Paziente non trovato con id: " + id);
+
+		if (!pazienteReloaded.getStato().equals(StatoPaziente.IN_VISITA))
+			throw new PazienteNonInVisitaException("Impossibile ricoverare un paziente che non e' in visita!!!!!!");
+
+		pazienteReloaded.setStato(StatoPaziente.DIMESSO);
+		pazienteReloaded.setCodiceDottore(null);
+		repository.save(pazienteReloaded);
+
+	}
+
 }

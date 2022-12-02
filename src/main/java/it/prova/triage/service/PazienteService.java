@@ -20,4 +20,6 @@ public interface PazienteService {
 	public void impostaCodiceDottoreAPaziente(String CF, String CodiceDottore);
 	
 	public void ricovera(Long id);
+	
+	public void dimetti(Long id);
 }

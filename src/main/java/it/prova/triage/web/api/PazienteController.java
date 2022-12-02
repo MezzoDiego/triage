@@ -34,7 +34,7 @@ public class PazienteController {
 
 	@Autowired
 	private PazienteService pazienteService;
-	
+
 	@Autowired
 	private WebClient webClient;
 
@@ -85,22 +85,41 @@ public class PazienteController {
 		Paziente pazienteAggiornato = pazienteService.aggiorna(paziente.buildPazienteModel());
 		return PazienteDTO.buildPazienteDTOFromModel(pazienteAggiornato);
 	}
-	
+
 	@PostMapping("/ricovera/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public DottoreResponseDTO impostaVisita( @Valid @RequestBody DottoreRequestDTO dottoreRequest, @PathVariable(required = true) Long id) {
-		
-		
+	public DottoreResponseDTO ricovera(@Valid @RequestBody DottoreRequestDTO dottoreRequest,
+			@PathVariable(required = true) Long id) {
+
 		pazienteService.ricovera(id);
-		
-		ResponseEntity<DottoreResponseDTO> response = webClient
-				.post().uri("/ricovera").body(
-						Mono.just(new DottoreRequestDTO(dottoreRequest.getCodiceDottore(), dottoreRequest.getCodiceFiscalePazienteAttualmenteInVisita())),
-						DottoreRequestDTO.class)
+
+		ResponseEntity<DottoreResponseDTO> response = webClient.post().uri("/ricovera")
+				.body(Mono.just(new DottoreRequestDTO(dottoreRequest.getCodiceDottore(),
+						dottoreRequest.getCodiceFiscalePazienteAttualmenteInVisita())), DottoreRequestDTO.class)
 				.retrieve().toEntity(DottoreResponseDTO.class).block();
-		
-		return new DottoreResponseDTO(response.getBody().getNome(), response.getBody().getCognome(), response.getBody().getCodiceDottore(), response.getBody().getInServizio(), response.getBody().getInVisita());
-		
+
+		return new DottoreResponseDTO(response.getBody().getNome(), response.getBody().getCognome(),
+				response.getBody().getCodiceDottore(), response.getBody().getInServizio(),
+				response.getBody().getInVisita());
+
+	}
+
+	@PostMapping("/dimetti/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public DottoreResponseDTO dimetti(@Valid @RequestBody DottoreRequestDTO dottoreRequest,
+			@PathVariable(required = true) Long id) {
+
+		pazienteService.dimetti(id);
+
+		ResponseEntity<DottoreResponseDTO> response = webClient.post().uri("/ricovera")
+				.body(Mono.just(new DottoreRequestDTO(dottoreRequest.getCodiceDottore(),
+						dottoreRequest.getCodiceFiscalePazienteAttualmenteInVisita())), DottoreRequestDTO.class)
+				.retrieve().toEntity(DottoreResponseDTO.class).block();
+
+		return new DottoreResponseDTO(response.getBody().getNome(), response.getBody().getCognome(),
+				response.getBody().getCodiceDottore(), response.getBody().getInServizio(),
+				response.getBody().getInVisita());
+
 	}
 
 }
