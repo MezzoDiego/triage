@@ -17,6 +17,7 @@ import it.prova.triage.dto.DottoreRequestDTO;
 import it.prova.triage.dto.DottoreResponseDTO;
 import it.prova.triage.service.PazienteService;
 import it.prova.triage.web.api.exceptions.DottoreNotAvailableException;
+import it.prova.triage.web.api.exceptions.HttpErrorException;
 import it.prova.triage.web.api.exceptions.NotFoundException;
 import reactor.core.publisher.Mono;
 
@@ -26,33 +27,40 @@ public class AssegnazionePazienteController {
 
 	@Autowired
 	private PazienteService pazienteService;
-	
+
 	@Autowired
 	private WebClient webClient;
-	
+
 	@PostMapping
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public DottoreResponseDTO impostaVisita( @Valid @RequestBody DottoreRequestDTO dottoreRequest) {
-		
-		DottoreResponseDTO dottoreResponseDTO = webClient.get().uri("/codiceDottore/" + dottoreRequest.getCodiceDottore()).retrieve()
-				.bodyToMono(DottoreResponseDTO.class).block();
-		
-		if(dottoreResponseDTO == null)
+	public DottoreResponseDTO impostaVisita(@Valid @RequestBody DottoreRequestDTO dottoreRequest) {
+
+		DottoreResponseDTO dottoreResponseDTO = webClient.get()
+				.uri("/codiceDottore/" + dottoreRequest.getCodiceDottore()).retrieve()
+				.onStatus(HttpStatus::is4xxClientError, response1 -> {
+					throw new HttpErrorException("si e' verificato un errore nell'app dottore.");
+				}).bodyToMono(DottoreResponseDTO.class).block();
+
+		if (dottoreResponseDTO == null)
 			throw new NotFoundException("Dottore non trovato con codice: " + dottoreRequest.getCodiceDottore());
-		
-		if(dottoreResponseDTO.getInVisita() == true || dottoreResponseDTO.getInServizio() == false)
+
+		if (dottoreResponseDTO.getInVisita() == true || dottoreResponseDTO.getInServizio() == false)
 			throw new DottoreNotAvailableException();
-		
-		pazienteService.impostaCodiceDottoreAPaziente(dottoreRequest.getCodiceFiscalePazienteAttualmenteInVisita(), dottoreRequest.getCodiceDottore());
-		
-		ResponseEntity<DottoreResponseDTO> response = webClient
-				.post().uri("/impostaInVisita").body(
-						Mono.just(new DottoreRequestDTO(dottoreRequest.getCodiceDottore(), dottoreRequest.getCodiceFiscalePazienteAttualmenteInVisita())),
-						DottoreRequestDTO.class)
-				.retrieve().toEntity(DottoreResponseDTO.class).block();
-		
-		return new DottoreResponseDTO(response.getBody().getNome(), response.getBody().getCognome(), response.getBody().getCodiceDottore(), response.getBody().getInServizio(), response.getBody().getInVisita());
-		
+
+		pazienteService.impostaCodiceDottoreAPaziente(dottoreRequest.getCodiceFiscalePazienteAttualmenteInVisita(),
+				dottoreRequest.getCodiceDottore());
+
+		ResponseEntity<DottoreResponseDTO> response = webClient.post().uri("/impostaInVisita")
+				.body(Mono.just(new DottoreRequestDTO(dottoreRequest.getCodiceDottore(),
+						dottoreRequest.getCodiceFiscalePazienteAttualmenteInVisita())), DottoreRequestDTO.class)
+				.retrieve().onStatus(HttpStatus::is4xxClientError, response1 -> {
+					throw new HttpErrorException("si e' verificato un errore nell'app dottore.");
+				}).toEntity(DottoreResponseDTO.class).block();
+
+		return new DottoreResponseDTO(response.getBody().getNome(), response.getBody().getCognome(),
+				response.getBody().getCodiceDottore(), response.getBody().getInServizio(),
+				response.getBody().getInVisita());
+
 	}
-	
+
 }

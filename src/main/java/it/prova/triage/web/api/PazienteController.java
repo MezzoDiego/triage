@@ -24,6 +24,7 @@ import it.prova.triage.dto.PazienteDTO;
 import it.prova.triage.model.Paziente;
 import it.prova.triage.service.PazienteService;
 import it.prova.triage.web.api.exceptions.DottoreNotAvailableException;
+import it.prova.triage.web.api.exceptions.HttpErrorException;
 import it.prova.triage.web.api.exceptions.IdNotNullForInsertException;
 import it.prova.triage.web.api.exceptions.NotFoundException;
 import reactor.core.publisher.Mono;
@@ -96,7 +97,7 @@ public class PazienteController {
 		ResponseEntity<DottoreResponseDTO> response = webClient.post().uri("/ricovera")
 				.body(Mono.just(new DottoreRequestDTO(dottoreRequest.getCodiceDottore(),
 						dottoreRequest.getCodiceFiscalePazienteAttualmenteInVisita())), DottoreRequestDTO.class)
-				.retrieve().toEntity(DottoreResponseDTO.class).block();
+				.retrieve().onStatus(HttpStatus::is4xxClientError, response1 ->{throw new HttpErrorException("si e' verificato un errore nell'app dottore."); }).toEntity(DottoreResponseDTO.class).block();
 
 		return new DottoreResponseDTO(response.getBody().getNome(), response.getBody().getCognome(),
 				response.getBody().getCodiceDottore(), response.getBody().getInServizio(),
@@ -114,7 +115,7 @@ public class PazienteController {
 		ResponseEntity<DottoreResponseDTO> response = webClient.post().uri("/ricovera")
 				.body(Mono.just(new DottoreRequestDTO(dottoreRequest.getCodiceDottore(),
 						dottoreRequest.getCodiceFiscalePazienteAttualmenteInVisita())), DottoreRequestDTO.class)
-				.retrieve().toEntity(DottoreResponseDTO.class).block();
+				.retrieve().onStatus(HttpStatus::is4xxClientError, response1 ->{throw new HttpErrorException("si e' verificato un errore nell'app dottore."); }).toEntity(DottoreResponseDTO.class).block();
 
 		return new DottoreResponseDTO(response.getBody().getNome(), response.getBody().getCognome(),
 				response.getBody().getCodiceDottore(), response.getBody().getInServizio(),
